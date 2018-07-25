@@ -1,3 +1,4 @@
+#include <ctime>
 #include "opencv2/opencv.hpp"
 #include <iostream>
 
@@ -5,6 +6,8 @@ using namespace std;
 using namespace cv;
 
 int main(){
+	
+	cv::setNumThreads(1);
 
 	String filename_in = "walking.avi";
 	VideoCapture vcap(filename_in); 
@@ -22,6 +25,8 @@ int main(){
 
 	VideoWriter video("output.avi",fourcc, fps, Size(width,height), isColor);
 
+	clock_t begin = clock();   // get time now
+	
 	while(true){
 
 		Mat frame;
@@ -45,6 +50,11 @@ int main(){
 		//~ if( c == 27 ) break;
 
 	}
+
+	clock_t end = clock();   // get time now
+	
+	double elapsed = double(end - begin) / CLOCKS_PER_SEC;
+	cout << elapsed << " seconds" << endl;
 
 	return 0;
 }
