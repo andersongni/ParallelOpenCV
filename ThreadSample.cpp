@@ -1,16 +1,21 @@
 #include <iostream>
 #include <thread>
-#include <list>
+#include <vector>
 #include <mutex>
 #include <condition_variable>
+#include <algorithm>
 
 using namespace std;
 
-std::list<int> buffer;
-std::list<int>::iterator it;
+std::vector<int> buffer;
+std::vector<int>::iterator it;
 
 std::mutex mu;
 std::condition_variable cond;
+
+bool compare(const int& first, const int& second) {
+	return first < second;
+}
 
 void serialize () {
 	
@@ -21,13 +26,14 @@ void serialize () {
 		std::unique_lock<mutex> locker(mu);
 		cond.wait(locker);
 	
+		sort(buffer.begin(), buffer.end(), compare);
+		
 		while (next == buffer.front()) {
 			cout << "Writing frame " << buffer.front() << endl;
-			buffer.pop_front();
+			//~ buffer.pop_front();
+			buffer.erase(buffer.begin());
 			next++;
 		}
-		
-		buffer.sort();
 		
 		std::cout << "buffer contains:";
 		for (it=buffer.begin(); it!=buffer.end(); ++it) {
