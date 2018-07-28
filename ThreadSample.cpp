@@ -7,37 +7,40 @@
 
 using namespace std;
 
-std::vector<int> buffer;
-std::vector<int>::iterator it;
+struct taggedFrame {
+	int tag;
+	string image;	
+};
+
+std::vector<taggedFrame> buffer;
+std::vector<taggedFrame>::iterator it;
 
 std::mutex mu;
 std::condition_variable cond;
 
-bool compare(const int& first, const int& second) {
-	return first < second;
+bool frameCompare(const taggedFrame& first, const taggedFrame& second) {
+	return first.tag < second.tag;
 }
 
 void serialize () {
 	
 	int next = 1;
-	int frame;
 
 	while (true) {
 		std::unique_lock<mutex> locker(mu);
 		cond.wait(locker);
 	
-		sort(buffer.begin(), buffer.end(), compare);
+		sort(buffer.begin(), buffer.end(), frameCompare);
 		
-		while (next == buffer.front()) {
-			cout << "Writing frame " << buffer.front() << endl;
-			//~ buffer.pop_front();
+		while (next == buffer.front().tag) {
+			cout << "Writing frame " << buffer.front().tag << endl;
 			buffer.erase(buffer.begin());
 			next++;
 		}
 		
 		std::cout << "buffer contains:";
 		for (it=buffer.begin(); it!=buffer.end(); ++it) {
-			std::cout << ' ' << *it;
+			std::cout << ' ' << (*it).tag;
 		}
 		std::cout << '\n';
 		
@@ -49,7 +52,15 @@ int main (int argc, char * argv[]) {
 	std::thread threadSerializer(serialize);	
 	threadSerializer.detach();
 	
-	int elements[] = {2,3,5,4,8,1,6,7,9};
+	taggedFrame elements[] = { { .tag = 2 },
+							 { .tag = 3 },
+							 { .tag = 5 },
+							 { .tag = 4 },
+							 { .tag = 8 },
+							 { .tag = 1 },
+							 { .tag = 6 },
+							 { .tag = 7 },
+							 { .tag = 9 } };
 	
 	int size = sizeof(elements)/sizeof(*elements);
 	
@@ -59,7 +70,7 @@ int main (int argc, char * argv[]) {
 		
 		std::unique_lock<mutex> locker(mu);
 		
-		cout << "appending element " << elements[i] << endl;
+		cout << "appending element " << elements[i].tag << endl;
 		buffer.push_back(elements[i]);
 		
 		locker.unlock();
