@@ -18,7 +18,7 @@ struct taggedFrame {
 	string image;	
 };
 
-std::vector<taggedFrame> buffer;
+std::vector<taggedFrame> writeQueue;
 std::vector<taggedFrame>::iterator it;
 
 std::mutex mu;
@@ -36,17 +36,17 @@ void serialize () {
 		std::unique_lock<mutex> locker(mu);
 		cond.wait(locker);
 	
-		sort(buffer.begin(), buffer.end(), frameCompare);
+		sort(writeQueue.begin(), writeQueue.end(), frameCompare);
 		
-		while (next == buffer.front().tag) {
-			cout << "Writing frame " << buffer.front().tag << " " << buffer.front().image << endl;
-			buffer.erase(buffer.begin());
+		while (next == writeQueue.front().tag) {
+			cout << "Writing frame " << writeQueue.front().tag << " " << writeQueue.front().image << endl;
+			writeQueue.erase(writeQueue.begin());
 			next++;
 			
 		}
 		
-		std::cout << "buffer contains:";
-		for (it=buffer.begin(); it!=buffer.end(); ++it) {
+		std::cout << "writeQueue contains:";
+		for (it=writeQueue.begin(); it!=writeQueue.end(); ++it) {
 			std::cout << ' ' << (*it).tag;
 		}
 		std::cout << '\n';
@@ -78,13 +78,13 @@ int main (int argc, char * argv[]) {
 		std::unique_lock<mutex> locker(mu);
 
 		cout << "appending element " << elements[i].tag << endl;
-		buffer.push_back(elements[i]);
+		writeQueue.push_back(elements[i]);
 
 		locker.unlock();
 		cond.notify_one();
 	}
 	
-	while (!buffer.empty()) {
+	while (!writeQueue.empty()) {
 		std::this_thread::sleep_for(chrono::milliseconds(100));	
 	}
 

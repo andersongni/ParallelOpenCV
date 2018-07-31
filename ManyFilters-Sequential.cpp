@@ -1,4 +1,10 @@
-#include <ctime>
+/*
+ * Anderson Ibrahim
+ * 
+ * g++ -pthread ManyFilters-Sequential.cpp -o ManyFilters-Sequential.cpp.out -std=c++0x `pkg-config --cflags --libs opencv`
+ * 
+ */
+
 #include "opencv2/opencv.hpp"
 #include <iostream>
 
@@ -38,10 +44,12 @@ int main(){
 		   break;
 		}
 
-		GaussianBlur(frame, frame, Size(7,7), 1.5, 1.5);
-		cvtColor(frame, frame, CV_BGR2GRAY);
-		Canny(frame, frame, 0, 30, 3);
-		cvtColor(frame, frame, CV_GRAY2BGR); //Converting frame to tree channels again
+		for (int i=0; i<10; i++) {
+			GaussianBlur(frame, frame, Size(7,7), 1.5, 1.5);
+			cvtColor(frame, frame, CV_BGR2GRAY);
+			Canny(frame, frame, 0, 30, 3);
+			cvtColor(frame, frame, CV_GRAY2BGR); //Converting frame to tree channels again
+		}
 
 		video.write(frame);
 
