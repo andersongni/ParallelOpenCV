@@ -48,25 +48,36 @@ void serialize () {
 		sort(buffer.begin(), buffer.end(), frameCompare);
 		
 		while (next == buffer.front().tag) {
-			cout << "Writing frame " << buffer.front().tag << endl;
+			//~ cout << "Writing frame " << buffer.front().tag << endl;
 			video.write(buffer.front().frame);
 			
 			buffer.erase(buffer.begin());
 			next++;
 		}
 		
-		std::cout << "buffer contains:";
-		for (it=buffer.begin(); it!=buffer.end(); ++it) {
-			std::cout << " " << (*it).tag;
-		}
-		std::cout << '\n';
+		//~ std::cout << "buffer contains:";
+		//~ for (it=buffer.begin(); it!=buffer.end(); ++it) {
+			//~ std::cout << " " << (*it).tag;
+		//~ }
+		//~ std::cout << '\n';
 		
 		locker.unlock();
 	}
 }
 
 int main (int argc, char * argv[]) {	
-	//~ cv::setNumThreads(1);
+	
+	chrono::steady_clock::time_point start_main = chrono::steady_clock::now();   // get time now
+	
+	if (argc < 2) {
+		cout << "This code requires two parametes: <number of threads workers> <number to filter complexity>" << endl;
+		return 1;
+	}
+	
+	int complexity = atoi(argv[1]);
+	int workers = atoi(argv[2]);
+	
+	cv::setNumThreads(workers);	
 	
 	String filename_in = "walking.avi";
 	VideoCapture vcap(filename_in); 
@@ -82,7 +93,7 @@ int main (int argc, char * argv[]) {
 	height  = vcap.get(CV_CAP_PROP_FRAME_HEIGHT);
 	isColor = true;
 	
-	cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
+	//~ cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
 	
 	std::thread threadSerializer(serialize);	
 	threadSerializer.detach();
@@ -102,11 +113,11 @@ int main (int argc, char * argv[]) {
 		}
 
 		if (index % 15 == 0) {
-			cout << "Sleeping for frame.tag=" << index << endl;
+			//~ cout << "Sleeping for frame.tag=" << index << endl;
 			std::this_thread::sleep_for(chrono::milliseconds(1000));
 		}
 
-		for (int i=0; i<50; i++) {
+		for (int i=0; i<complexity; i++) {
 			GaussianBlur(frame, frame, Size(7,7), 1.5, 1.5);
 			cvtColor(frame, frame, CV_BGR2GRAY);
 			Canny(frame, frame, 0, 30, 3);
@@ -118,7 +129,7 @@ int main (int argc, char * argv[]) {
 
 		std::unique_lock<mutex> locker(mu);
 	
-		cout << "appending element " << currentFrame.tag << endl;
+		//~ cout << "appending element " << currentFrame.tag << endl;
 		buffer.push_back(currentFrame);
 		
 		locker.unlock();
@@ -126,15 +137,14 @@ int main (int argc, char * argv[]) {
 		
 		index++;
 	}
-
-	clock_t end = clock();   // get time now
-	
-	double elapsed = double(end - begin) / CLOCKS_PER_SEC;
-	cout << elapsed << " seconds" << endl;
 	
 	while (!buffer.empty()) {
 		std::this_thread::sleep_for(chrono::milliseconds(100));	
 	}
+	
+	chrono::steady_clock::time_point end_main = chrono::steady_clock::now();   // get time now
+	chrono::steady_clock::duration duration_main = end_main - start_main;
+	cout << chrono::duration_cast<chrono::milliseconds>(duration_main).count() << endl;
 
 	return 0;
 }

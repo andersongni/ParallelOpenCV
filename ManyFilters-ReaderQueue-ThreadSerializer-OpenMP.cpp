@@ -70,18 +70,19 @@ void serialize () {
 }
 
 int main (int argc, char * argv[]) {	
+	
+	chrono::steady_clock::time_point start_main = chrono::steady_clock::now();   // get time now
+	chrono::steady_clock::time_point start_read = chrono::steady_clock::now();   // get time now
+	
 	if (argc < 2) {
 		cout << "This code requires two parametes: <number of threads workers> <number to filter complexity>" << endl;
 		return 1;
 	}
 	
-	int workers = atoi(argv[1]);
-	int complexity = atoi(argv[2]);
+	int complexity = atoi(argv[1]);
+	int workers = atoi(argv[2]);
 	
 	cv::setNumThreads(1);
-	
-	chrono::steady_clock::time_point start_main = chrono::steady_clock::now();   // get time now
-	chrono::steady_clock::time_point start_read = chrono::steady_clock::now();   // get time now
 	
 	String filename_in = "walking.avi";
 	VideoCapture vcap(filename_in); 
@@ -97,7 +98,7 @@ int main (int argc, char * argv[]) {
 	height  = vcap.get(CV_CAP_PROP_FRAME_HEIGHT);
 	isColor = true;
 	
-	cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
+	//~ cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
 	
 	std::thread threadSerializer(serialize);	
 	threadSerializer.detach();
@@ -124,8 +125,8 @@ int main (int argc, char * argv[]) {
 		
 	chrono::steady_clock::time_point end_read = chrono::steady_clock::now();   // get time now
 	chrono::steady_clock::duration duration_read = end_read - start_read;
-	cout << "Time to read:\t" << chrono::duration_cast<chrono::milliseconds>(duration_read).count() 
-		<< " milliseconds" << endl;
+	//~ cout << "Time to read:\t" << chrono::duration_cast<chrono::milliseconds>(duration_read).count() 
+		//~ << " milliseconds" << endl;
 	
 	chrono::steady_clock::time_point start_filter = chrono::steady_clock::now();   // get time now
 	
@@ -168,8 +169,8 @@ int main (int argc, char * argv[]) {
 		
 	chrono::steady_clock::time_point end_filter = chrono::steady_clock::now();   // get time now
 	chrono::steady_clock::duration duration_filter = end_filter - start_filter;
-	cout << "Time to filter:\t" << chrono::duration_cast<chrono::milliseconds>(duration_filter).count() 
-		<< " milliseconds" << endl;
+	//~ cout << "Time to filter:\t" << chrono::duration_cast<chrono::milliseconds>(duration_filter).count() 
+		//~ << " milliseconds" << endl;
 
 	while (!writeQueue.empty()) {
 		std::this_thread::sleep_for(chrono::milliseconds(100));	
@@ -177,8 +178,7 @@ int main (int argc, char * argv[]) {
 	
 	chrono::steady_clock::time_point end_main = chrono::steady_clock::now();   // get time now
 	chrono::steady_clock::duration duration_main = end_main - start_main;
-	cout << "Total time:\t" << chrono::duration_cast<chrono::milliseconds>(duration_main).count() 
-		<< " milliseconds" << endl;
+	cout << chrono::duration_cast<chrono::milliseconds>(duration_main).count() << endl;
 	
 	return 0;
 }

@@ -7,11 +7,15 @@
 
 #include "opencv2/opencv.hpp"
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 using namespace cv;
 
 int main(int argc, char * argv[]) {
+	
+	chrono::steady_clock::time_point start_main = chrono::steady_clock::now();   // get time now
+	
 	if (argc < 2) {
 		cout << "This code requires one parametes: <number to filter complexity>" << endl;
 		return 1;
@@ -35,7 +39,7 @@ int main(int argc, char * argv[]) {
 	int  height  = vcap.get(CV_CAP_PROP_FRAME_HEIGHT);
 	bool isColor = true;
 	
-	cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
+	//~ cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
 
 	VideoWriter video("output.avi",fourcc, fps, Size(width,height), isColor);
 
@@ -66,11 +70,10 @@ int main(int argc, char * argv[]) {
 		//~ if( c == 27 ) break;
 
 	}
-
-	clock_t end = clock();   // get time now
 	
-	double elapsed = double(end - begin) / CLOCKS_PER_SEC;
-	cout << elapsed << " seconds" << endl;
+	chrono::steady_clock::time_point end_main = chrono::steady_clock::now();   // get time now
+	chrono::steady_clock::duration duration_main = end_main - start_main;
+	cout << chrono::duration_cast<chrono::milliseconds>(duration_main).count() << endl;
 
 	return 0;
 }
