@@ -13,6 +13,7 @@
 #include "opencv2/opencv.hpp"
 #include <omp.h>
 #include <stdio.h>
+#include <chrono>
 
 using namespace std;
 using namespace cv;
@@ -69,7 +70,18 @@ void serialize () {
 }
 
 int main (int argc, char * argv[]) {	
+	if (argc < 2) {
+		cout << "This code requires two parametes: <number of threads workers> <number to filter complexity>" << endl;
+		return 1;
+	}
+	
+	int workers = atoi(argv[1]);
+	int complexity = atoi(argv[2]);
+	
 	cv::setNumThreads(1);
+	
+	chrono::steady_clock::time_point start_main = chrono::steady_clock::now();   // get time now
+	chrono::steady_clock::time_point start_read = chrono::steady_clock::now();   // get time now
 	
 	String filename_in = "walking.avi";
 	VideoCapture vcap(filename_in); 
@@ -85,13 +97,14 @@ int main (int argc, char * argv[]) {
 	height  = vcap.get(CV_CAP_PROP_FRAME_HEIGHT);
 	isColor = true;
 	
+	cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
+	
 	std::thread threadSerializer(serialize);	
 	threadSerializer.detach();
 	
-	clock_t begin = clock();   // get time now
-	
 	TaggedFrame currentFrame;
 	int index = 0;
+	
 	
 	while(true){
 
@@ -108,8 +121,15 @@ int main (int argc, char * argv[]) {
 		index++;
 		
 	}
+		
+	chrono::steady_clock::time_point end_read = chrono::steady_clock::now();   // get time now
+	chrono::steady_clock::duration duration_read = end_read - start_read;
+	cout << "Time to read:\t" << chrono::duration_cast<chrono::milliseconds>(duration_read).count() 
+		<< " milliseconds" << endl;
 	
-	#pragma omp parallel num_threads(4)
+	chrono::steady_clock::time_point start_filter = chrono::steady_clock::now();   // get time now
+	
+	#pragma omp parallel num_threads(workers)
 	{
 		int id = omp_get_thread_num();
 		int n_threads = omp_get_num_threads();
@@ -125,7 +145,7 @@ int main (int argc, char * argv[]) {
 
 				//~ msg = msg + to_string((*it).tag) + " ";
 
-				for (int i=0; i<10; i++) {
+				for (int i=0; i<complexity; i++) {
 					GaussianBlur(frame, frame, Size(7,7), 1.5, 1.5);
 					cvtColor(frame, frame, CV_BGR2GRAY);
 					Canny(frame, frame, 0, 30, 3);
@@ -145,15 +165,20 @@ int main (int argc, char * argv[]) {
 		//~ msg = msg + "\n";
 		//~ cout << msg;
 	}
+		
+	chrono::steady_clock::time_point end_filter = chrono::steady_clock::now();   // get time now
+	chrono::steady_clock::duration duration_filter = end_filter - start_filter;
+	cout << "Time to filter:\t" << chrono::duration_cast<chrono::milliseconds>(duration_filter).count() 
+		<< " milliseconds" << endl;
 
-	clock_t end = clock();   // get time now
-	
-	double elapsed = double(end - begin) / CLOCKS_PER_SEC;
-	cout << elapsed << " seconds" << endl;
-	
 	while (!writeQueue.empty()) {
 		std::this_thread::sleep_for(chrono::milliseconds(100));	
 	}
-
+	
+	chrono::steady_clock::time_point end_main = chrono::steady_clock::now();   // get time now
+	chrono::steady_clock::duration duration_main = end_main - start_main;
+	cout << "Total time:\t" << chrono::duration_cast<chrono::milliseconds>(duration_main).count() 
+		<< " milliseconds" << endl;
+	
 	return 0;
 }

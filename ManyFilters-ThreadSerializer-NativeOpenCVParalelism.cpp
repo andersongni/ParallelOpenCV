@@ -82,6 +82,8 @@ int main (int argc, char * argv[]) {
 	height  = vcap.get(CV_CAP_PROP_FRAME_HEIGHT);
 	isColor = true;
 	
+	cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
+	
 	std::thread threadSerializer(serialize);	
 	threadSerializer.detach();
 	

@@ -11,7 +11,13 @@
 using namespace std;
 using namespace cv;
 
-int main(){
+int main(int argc, char * argv[]) {
+	if (argc < 2) {
+		cout << "This code requires one parametes: <number to filter complexity>" << endl;
+		return 1;
+	}
+	
+	int complexity = atoi(argv[1]);
 	
 	cv::setNumThreads(1);
 
@@ -28,6 +34,8 @@ int main(){
 	int  width   = vcap.get(CV_CAP_PROP_FRAME_WIDTH);
 	int  height  = vcap.get(CV_CAP_PROP_FRAME_HEIGHT);
 	bool isColor = true;
+	
+	cout << "fourcc:" << fourcc << " fps:" << fps << " size:(" << width << "x" << height << ")" << endl;
 
 	VideoWriter video("output.avi",fourcc, fps, Size(width,height), isColor);
 
@@ -44,7 +52,7 @@ int main(){
 		   break;
 		}
 
-		for (int i=0; i<10; i++) {
+		for (int i=0; i<complexity; i++) {
 			GaussianBlur(frame, frame, Size(7,7), 1.5, 1.5);
 			cvtColor(frame, frame, CV_BGR2GRAY);
 			Canny(frame, frame, 0, 30, 3);
