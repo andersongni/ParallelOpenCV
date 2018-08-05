@@ -112,11 +112,6 @@ int main (int argc, char * argv[]) {
 			break;
 		}
 
-		if (index % 15 == 0) {
-			//~ cout << "Sleeping for frame.tag=" << index << endl;
-			std::this_thread::sleep_for(chrono::milliseconds(1000));
-		}
-
 		for (int i=0; i<complexity; i++) {
 			GaussianBlur(frame, frame, Size(7,7), 1.5, 1.5);
 			cvtColor(frame, frame, CV_BGR2GRAY);
