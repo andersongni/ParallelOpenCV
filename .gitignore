@@ -1,6 +1,5 @@
-*.out
-output.png
-output.jpg
-output.jpg
-lena.png
 *.avi
+*.out
+*.png
+*.jpg
+*.log

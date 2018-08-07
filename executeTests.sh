@@ -1,4 +1,10 @@
 #!/bin/bash
+if [ $# -lt 2 ];
+then
+	echo "Please inform the following parameters: <Number of executions> <Max number of threads>";
+	exit -1;
+fi
+
 n_executions=$1
 n_threads=$2
 
